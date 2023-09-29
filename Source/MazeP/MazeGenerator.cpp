@@ -20,7 +20,7 @@ void AMazeGenerator::BeginPlay()
     Super::BeginPlay();
     FTimerHandle Handle;
 
-    GetWorld()->GetTimerManager().SetTimer(Handle,this,&AMazeGenerator::GenerateAndPrintMaze,1.0f);
+    GetWorld()->GetTimerManager().SetTimer(Handle,this,&AMazeGenerator::GenerateAndPrintMaze,5.0f);
     // Call the function to generate and print the maze
    // GenerateAndPrintMaze();
 }
@@ -37,10 +37,14 @@ void AMazeGenerator::GenerateAndPrintMaze()
 
     // // Print the maze to the log
      //MazeString= MazeGen::Mazer();
-    float time = 1.0f;
+    float time = 0.1f;
+    int Pillar = 0;
+    int Path = 0;
     MazeGen maze;
     MazeArray = maze.MazeGrid();
     FVector CellSize(400.0f, 400.0f, 400.0f); // Adjust as needed
+    
+    
 
     for (int32 Row = 0; Row < MazeArray.Num(); Row++)
     {
@@ -48,13 +52,10 @@ void AMazeGenerator::GenerateAndPrintMaze()
         {
             char CellValue = MazeArray[Row][Column];
             AActor* SpawnedActor = nullptr;
-            UE_LOG(LogTemp, Warning, TEXT("%f"), time);
-
-            // Determine which object to spawn based on the character value
-            if (CellValue == '+')
+            if (CellValue == '+' && Pillar %2==0)
             {
                 // Spawn an intersection wall at the current location
-                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 250.0f); // Adjust Z as needed
+                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 200.0f); // Adjust Z as needed
                 // Create a lambda function to handle the actor spawning
                 FTimerDelegate TimerDelegate;
                 TimerDelegate.BindLambda([this, SpawnLocation]() {
@@ -63,14 +64,31 @@ void AMazeGenerator::GenerateAndPrintMaze()
                 FTimerHandle Handle;
 
                 GetWorld()->GetTimerManager().SetTimer(Handle,TimerDelegate, time,false);
-
+                Pillar += 1;
                 //SpawnedActor = GetWorld()->SpawnActor<AActor>(IntersectionWall, SpawnLocation, FRotator::ZeroRotator);
 
             }
+            else if (CellValue == '+' && Pillar % 1 == 0)
+            {
+                // Spawn an intersection wall at the current location
+                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 200.0f); // Adjust Z as needed
+                // Create a lambda function to handle the actor spawning
+                FTimerDelegate TimerDelegate;
+                TimerDelegate.BindLambda([this, SpawnLocation]() {
+                    SpawnActorAtLocation(IntersectionWallOdd, SpawnLocation);
+                    });
+                FTimerHandle Handle;
+
+                GetWorld()->GetTimerManager().SetTimer(Handle, TimerDelegate, time, false);
+                Pillar += 1;
+                //SpawnedActor = GetWorld()->SpawnActor<AActor>(IntersectionWall, SpawnLocation, FRotator::ZeroRotator);
+
+            }
+
             else if (CellValue == '-')
             {
                 // Spawn a horizontal wall at the current location
-                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 250.0f); // Adjust Z as needed
+                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 200.0f); // Adjust Z as needed
                 
                 // Create a lambda function to handle the actor spawning
                 FTimerDelegate TimerDelegate;
@@ -87,7 +105,7 @@ void AMazeGenerator::GenerateAndPrintMaze()
             else if (CellValue == '|')
             {
                 // Spawn a vertical wall at the current location
-                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 250.0f); // Adjust Z as needed
+                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 200.0f); // Adjust Z as needed
                 
                 // Create a lambda function to handle the actor spawning
                 FTimerDelegate TimerDelegate;
@@ -101,10 +119,54 @@ void AMazeGenerator::GenerateAndPrintMaze()
                 
                 //SpawnedActor = GetWorld()->SpawnActor<AActor>(CentreWalls, SpawnLocation, FRotator::ZeroRotator);
             }
-            time += 0.01f;
+            
+          /*  else if (CellValue == 'X' && Path % 2 == 1) {
+                Path += 1;
+            }*/
+
+            time += 0.005f;
         }
     }
+    for (int32 Row = 0; Row < MazeArray.Num(); Row++)
+    {
+        for (int32 Column = 0; Column < MazeArray[Row].Num(); Column++)
+        {
+            char CellValue = MazeArray[Row][Column];
+            if (CellValue == 'X' /*&& Path % 2 == 0*/) {
+                FVector SpawnLocation = FVector(Column * CellSize.X, Row * CellSize.Y, 250.0f); // Adjust Z as needed
 
+                //Create a lambda function to handle the actor spawning
+                FTimerDelegate TimerDelegate;
+
+                TimerDelegate.BindLambda([this, SpawnLocation]() {
+                    SpawnActorAtLocation(Light, SpawnLocation);
+                    });
+                FTimerHandle Handle;
+
+                GetWorld()->GetTimerManager().SetTimer(Handle, TimerDelegate, time, false);
+                Path += 1;
+                PathLocation.Add(SpawnLocation);
+                time += 0.1f;
+
+            }
+        }
+
+    }
+
+    FVector SpawnLocation = FVector(0 * CellSize.X, 0 * CellSize.Y, 250.0f); // Adjust Z as needed
+
+    //Create a lambda function to handle the actor spawning
+    FTimerDelegate TimerDelegate;
+
+    TimerDelegate.BindLambda([this, SpawnLocation]() {
+        SpawnActorAtLocation(Camera, SpawnLocation);
+        });
+    FTimerHandle Handle;
+
+    GetWorld()->GetTimerManager().SetTimer(Handle, TimerDelegate, time, false);
+    Path += 1;
+            
+            time += 0.01f;
 
 }
 

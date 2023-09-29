@@ -91,6 +91,7 @@ void Maze::buildmaze()
             }
         }
     }
+    
     for (auto [w, u, v] : edges)
     {
         if (dsu.find(u) != dsu.find(v)) // unite if u and v dont belong to same component
@@ -122,12 +123,81 @@ MazeGen::MazeGen()
     
 }
 
+
+
+void dijkstra(Maze& m)
+{
+    int n = 2 * m.n + 1;
+    pair<int, int> start = { 0, 2 * m.start + 1 }, end = { 2 * m.n, 2 * m.end + 1 };
+    vector<vector<int>> dis(n, vector<int>(n, INT_MAX)); // stores min distance from start to the current cell
+    vector<vector<pair<int, int>>> par(n, vector<pair<int, int>>(n)); // storing the parent cell of each cell , used for backtracking the solution
+    set<pair<int, pair<int, int>>> s; // stores {min distance to reach the cell , cell}
+    s.insert({ 0, start });
+    while (!s.empty())
+    {
+        pair<int, pair<int, int>> a = *s.begin();
+        s.erase(s.begin());
+        int dist = a.first, x = a.second.first, y = a.second.second;
+        if (x < n - 1 && m.maze[x + 1][y] == ' ' && dis[x + 1][y] > dist + 1) // checking if distance to cell can be minimised
+        {
+            if (s.find({ dis[x + 1][y], {x + 1, y} }) != s.end())
+                s.erase(s.find({ dis[x + 1][y], {x + 1, y} }));
+            s.insert({ dist + 1, {x + 1, y} });
+            dis[x + 1][y] = dist + 1; // updating the min distance as min distance of parent + 1
+            par[x + 1][y] = { x, y };
+        }
+        if (x > 0 && m.maze[x - 1][y] == ' ' && dis[x - 1][y] > dist + 1) // checking if distance to cell can be minimised
+        {
+            if (s.find({ dis[x - 1][y], {x - 1, y} }) != s.end())
+                s.erase(s.find({ dis[x - 1][y], {x - 1, y} }));
+            s.insert({ dist + 1, {x - 1, y} });
+            dis[x - 1][y] = dist + 1; // updating the min distance as min distance of parent + 1
+            par[x - 1][y] = { x, y };
+        }
+        if (y > 0 && m.maze[x][y - 1] == ' ' && dis[x][y - 1] > dist + 1) // checking if distance to cell can be minimised
+        {
+            if (s.find({ dis[x][y - 1], {x, y - 1} }) != s.end())
+                s.erase(s.find({ dis[x][y - 1], {x, y - 1} }));
+            s.insert({ dist + 1, {x, y - 1} });
+            dis[x][y - 1] = dist + 1; // updating the min distance as min distance of parent + 1
+            par[x][y - 1] = { x, y };
+        }
+        if (y < n - 1 && m.maze[x][y + 1] == ' ' && dis[x][y + 1] > dist + 1) // checking if distance to cell can be minimised
+        {
+            if (s.find({ dis[x][y + 1], {x, y + 1} }) != s.end())
+                s.erase(s.find({ dis[x][y + 1], {x, y + 1} }));
+            s.insert({ dist + 1, {x, y + 1} });
+            dis[x][y + 1] = dist + 1; // updating the min distance as min distance of parent + 1
+            par[x][y + 1] = { x, y };
+        }
+    }
+    if (dis[end.first][end.second] > 1e9) // Solution will always exist since MST always forms a connected component including all cells
+    {
+    }
+    else
+    {
+        pair<int, int> x = end;
+        while (x != start) // Backtracking the Maze Solution
+        {
+            int a = x.first, b = x.second;
+            m.maze[a][b] = 'X';
+            x = par[a][b];
+            if (x == start)
+                break;
+        }
+        m.maze[x.first][x.second] = 'X';
+    }
+}
+
+
+
 TArray<TArray<char>> MazeGen::MazeGrid()
 {
     TArray<TArray<char>> UnrealMaze;
 
-    Maze maze(20);
+    Maze maze(14);
     maze.buildmaze();
+    dijkstra(maze);
   
     for (int i = 0; i < maze.maze.size(); i++)
     {
@@ -141,6 +211,7 @@ TArray<TArray<char>> MazeGen::MazeGrid()
 
     return UnrealMaze;
 }
+
 
 
 

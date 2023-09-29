@@ -26,16 +26,27 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void GenerateAndPrintMaze();
 	void SpawnActorAtLocation(TSubclassOf<AActor> ActorClass, const FVector& SpawnLocation);
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Maze")
 	TSubclassOf<AActor> IntersectionWall;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Maze")
+	TSubclassOf<AActor> IntersectionWallOdd;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Maze")
 	TSubclassOf<AActor> SideWalls;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Maze")
 	TSubclassOf<AActor> CentreWalls;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Maze")
+	TSubclassOf<AActor> Light;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	TSubclassOf<AActor> Camera;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Path")
+	TArray<FVector> PathLocation;
 
 	//UPROPERTY()
 	TArray<TArray<char>> MazeArray;
